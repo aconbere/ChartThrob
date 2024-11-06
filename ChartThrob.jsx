@@ -115,54 +115,6 @@ var gNegate = false;
 
 // https://forums.adobe.com/message/5589227
 
-function GaEmitter() {
-	'use strict';
-	this.doNotTrack = gDoNotTrack;
-	this.TID = 'UA-4450500-1';		// site-specific constant
-	try {
-		this.userAgent = 'Photoshop/'+app.systemInformation.match(/Photo.hop Version:\s*(\S*)/)[1];
-	} catch(e) {
-		this.userAgent = 'Photoshop/PS';
-	}
-	try {
-		var sn = app.systemInformation.match(/Serial number:\s*(\d*)/)[1];
-		this.cid = sn.slice(0,8)+'-'+sn.slice(8,12)+'-'+sn.slice(12,16)+'-'+sn.slice(16,20)+'-'+sn.slice(0,12);
-	} catch(e) {
-		this.cid = '12345678-1234-5678-1234-567812345678';
-	}
-	this.url = 'http://www.google-analytics.com';
-	this.domain = 'www.google-analytics.com:80';
-	this.required = 'v=1&tid='+this.TID+'&cid='+this.cid+'&';
-	//this.call = 'POST /collect HTTP/1.1\r\nHost: www.google-analytics.com\r\nUser-Agent: '+this.userAgent+'\r\nContent-Length: '+this.payload.length+'\r\n\r\n' +this.payload+'\r\nConnection: close\r\n\r\n';
-	if (this.doNotTrack) { return; }
-	this.reply = ''; // new String();
-	try {
-		this.conn = new Socket();
-	} catch (e) {
-		this.doNotTrack = true; // cannot track for some reason
-		return;
-	}
-	this.conn.encoding = 'binary';
-}
-
-GaEmitter.prototype.sendPayload = function(payload) {
-	'use strict';
-	this.payload = this.required + payload;
-	this.call = 'POST /collect HTTP/1.1\r\nHost: www.google-analytics.com\r\nUser-Agent: '+this.userAgent+'\r\nContent-Length: '+this.payload.length+'\r\n\r\n' +this.payload+'\r\nConnection: close\r\n\r\n';
-	if (this.doNotTrack) { return; }
-	//alert(this.payload);
-	if (this.conn.open(this.domain,'binary')) {
-		this.conn.write(this.call);
-		this.reply = this.conn.read(9999999999);
-		this.conn.close();
-	} else {
-		this.reply = '';
-	}
-	return this.reply.substr(this.reply.indexOf('\r\n\r\n')+4);
-};
-
-var gTracker = new GaEmitter();
-
 // functions ///////////////
 
 function resetDpi(newDPI)
@@ -186,16 +138,18 @@ function resetDpi(newDPI)
 function helpDialog()
 {
 	'use strict';
-	var st = function(par,txt) {
+	var st = function(par, txt) {
 		var p = par.add('statictext');
 		p.text = txt;
 		return p;
 	};
+
 	var dlg = new Window('dialog', gTitle+' Help');
 	dlg.gttl = dlg.add('group');
 	dlg.gttl.orientation = 'column';
 	dlg.gttl.spacing = 2;
 	var tp = st(dlg.gttl,(gTitle+', '+gDate));
+
 	st(dlg.gttl,'http://www.botzilla.com/');
 	dlg.gtop = dlg.add('group');
 	dlg.gtop.orientation = 'column';
@@ -285,27 +239,14 @@ function userDialog()
 		p.text = txt;
 		return p;
 	}
-	// var vers = version_string();
 	var scannable = true;
 
 	if (app.documents.length < 1) {
 		gMakeChart = true;
 		scannable = false;
-//	} else {
-//	var limit = new UnitValue(100,'px');
-//	var w = app.activeDocument.width.value;
-//	var h = app.activeDocument.height.value;
-//	w.convert('px');
-//	h.convert('px');
-//	if ((w < limit) || (h < limit)) {
-//		alert(gTitle+' Warning:\nCurrent active document is too small\nto scan properly:\n'+w+','+h);
-//		gMakeChart = true;
-//		scannable = false;
-//	}
 	}
-	//
+
 	var dlg = new Window('dialog', gTitle);
-	// dlg.alignChildren = 'fill';
 	dlg.alignChildren = 'center';
 	dlg.gttl = dlg.add('group');
 	dlg.gttl.orientation = 'column';
@@ -347,7 +288,7 @@ function userDialog()
 		dlg.bpnl.text = 'Build New Printable Chart';
 	}
 	dlg.bpnl.helpTip = 'Use these controls when creating a new, positive chart for test-printing';
-	//
+
 	dlg.bpnl.grp2 = dlg.bpnl.add('group');
 	dlg.bpnl.grp2.junk = dlg.bpnl.grp2.add('statictext');
 		dlg.bpnl.grp2.junk.text = 'New Name:';
@@ -367,7 +308,7 @@ function userDialog()
 		pw = dlg.bpnl.grp2.label.preferredSize.width + 40;
 		ph = dlg.bpnl.grp2.label.preferredSize.height;
 		dlg.bpnl.grp2.label.size = [pw, ph];
-	//
+
 	dlg.bpnl.grp = dlg.bpnl.add('group');
 	dlg.bpnl.grp.textBtn = dlg.bpnl.grp.add('checkbox');
 		dlg.bpnl.grp.textBtn.text = 'Numbers';
@@ -387,7 +328,7 @@ function userDialog()
 		pw = dlg.bpnl.grp.dpiLabel.preferredSize.width + 20;
 		ph = dlg.bpnl.grp.dpiLabel.preferredSize.height;
 		dlg.bpnl.grp.dpiLabel.size = [pw, ph];
-	//
+
 	dlg.bpnl.okayBtn = dlg.bpnl.add('button');
 	dlg.bpnl.okayBtn.text = 'Build New Chart Now';
 	dlg.bpnl.okayBtn.name = 'buildNew';
@@ -396,7 +337,7 @@ function userDialog()
 		dlg.defaultElement = dlg.bpnl.okayBtn;
 		dlg.bpnl.okayBtn.size = [200, 30];
 	}
-	//
+
 
 	// group for bottom buttons
 	dlg.bot = dlg.add('group');
@@ -439,7 +380,7 @@ function userDialog()
 		dv = 72;
 	}
 	resetDpi(dv);
-	// if (app.documents.length > 0) {
+
 	if (scannable === true) {
 		gShowSamples = dlg.wpnl.strokeBtn.value;
 		gNegate = dlg.wpnl.negBtn.value;
@@ -459,7 +400,6 @@ function toGray(C)
 {
 	'use strict';
 	return ((C.rgb.red+C.rgb.green+C.rgb.blue)/3.0);
-	// return (C.rgb.red*0.2+C.rgb.green*0.7+C.rgb.blue*0.1);
 }
 
 function grayValues(ColorSamples)
@@ -1114,7 +1054,6 @@ function curveLayer(curvePoints)
 		alert('Unable to complete curve layer --\n'+
 				'Try converting your scan to "RGB Color" using the "Image->Mode"\n'+
 				'menu, then run ChartThrob again.');
-		gTracker.sendPayload('t=exception&exd=Curve%20Layer&dp=%2Fchartthrob%2Fscan&dt=Scan%20Chart');
 		return 0;
 
 	}
@@ -1183,7 +1122,6 @@ function scanResultsReport()
 		okayBtn.onClick = function () {this.parent.close(1); };
 	}
 	dlg.center();
-	gTracker.sendPayload('t=pageview&dp=%2Fchartthrob%2Freport&dt=ChartThrob%20Report');
 	var result = dlg.show();
 }
 
@@ -1220,7 +1158,6 @@ function scanChart()
 				alert('Unable to convert the duplicate image\nto mode "'+ChangeMode.RGB+'" --\n'+
 						'Try converting your scan to "RGB Color"\nusing the "Image->Mode"\n'+
 						'menu, then run ChartThrob again.');
-				gTracker.sendPayload('t=exception&exd=Mode%20Issue&dp=%2Fchartthrob%2Fscan&dt=Scan%20Chart');
 				samplerDoc.close(SaveOptions.DONOTSAVECHANGES);
 				return -1;
 			}
@@ -1285,7 +1222,7 @@ function buildChart()
 	var cJust = Justification.CENTER;
 	var L;
 	var S = 16*(72/300.0); // points, not pixels
-	L = writeText(cCtr,cBot-gDPIScale*75,gTitle+' ©2006-2019 Kevin Bjorke',0,cJust);
+	L = writeText(cCtr,cBot-gDPIScale*75,gTitle+' ï¿½2006-2019 Kevin Bjorke',0,cJust);
 	L.textItem.size = S;
 	L = writeText(cCtr,cBot-gDPIScale*58,'http://www.botzilla.com/',0,cJust);
 	L.textItem.size = S;
@@ -1308,7 +1245,6 @@ function buildChart()
 function main()
 {
 	'use strict';
-	gTracker.sendPayload('t=pageview&dp=%2Fchartthrob&dt=ChartThrob');
 	if (userDialog() < 1) {
 		return;
 	}
@@ -1317,10 +1253,8 @@ function main()
 		app.preferences.rulerUnits = Units.PIXELS; // selections are always in pixels
 	}
 	if (gMakeChart) {
-		gTracker.sendPayload('t=pageview&dp=%2Fchartthrob%2Fbuild&dt=Build%20Chart');
 		buildChart();
 	} else {
-		gTracker.sendPayload('t=pageview&dp=%2Fchartthrob%2Fscan&dt=Scan%20Chart');
 		if (scanChart() >= 0) {
 			scanResultsReport();
 		}
